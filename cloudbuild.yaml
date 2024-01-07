@@ -1,0 +1,23 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'asia-southeast1-docker.pkg.dev/dvt-sg-vertex-ai/demo-registry/villademo-imgsearch:latest', 
+        '--cache-from', 'asia-southeast1-docker.pkg.dev/dvt-sg-vertex-ai/demo-registry/villademo-imgsearch:latest',
+        '-f', 'Dockerfile', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'asia-southeast1-docker.pkg.dev/dvt-sg-vertex-ai/demo-registry/villademo-imgsearch:latest']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['run', 'deploy', 'villademo-imgsearch',
+        '--image', 'asia-southeast1-docker.pkg.dev/dvt-sg-vertex-ai/demo-registry/villademo-imgsearch:latest', 
+        '--region', 'asia-southeast1', '--platform', 'managed',
+        '--cpu', '2',
+        '--memory', '2Gi',
+        '--concurrency', '12',
+        '--labels', 'demo=villa',
+        '--allow-unauthenticated',
+        '--timeout', '10m']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['run', 'services', 'update-traffic', 'villademo-imgsearch', '--region', 'asia-southeast1', '--to-latest']
+images:
+  - asia-southeast1-docker.pkg.dev/dvt-sg-vertex-ai/demo-registry/villademo-imgsearch:latest
+
+# gcloud builds submit --config cloudbuild.yaml --machine-type=N1_HIGHCPU_8 .
